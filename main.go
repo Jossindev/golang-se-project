@@ -37,7 +37,7 @@ func main() {
 	}
 
 	// Pet routes
-	// Routes protected by OAuth (JWT in our case)
+	// Routes protected by JWT
 	petAuth := router.Group("")
 	petAuth.Use(middleware.AuthMiddleware())
 	{
@@ -52,6 +52,15 @@ func main() {
 
 	// Routes that can use either API key or OAuth
 	router.GET("/pet/:petId", middleware.ApiKeyAuth(), handlers.GetPetById)
+
+	// Store routes
+	// Inventory route protected by API key
+	router.GET("/store/inventory", middleware.ApiKeyAuth(), handlers.GetInventory)
+
+	// Order routes (public)
+	router.POST("/store/order", handlers.PlaceOrder)
+	router.GET("/store/order/:orderId", handlers.GetOrderById)
+	router.DELETE("/store/order/:orderId", handlers.DeleteOrder)
 
 	router.Run(":8080")
 }

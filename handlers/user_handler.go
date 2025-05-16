@@ -10,6 +10,71 @@ import (
 	"time"
 )
 
+func CreateUser1(c *gin.Context) {
+	// 2. Parse request body based on content type
+	var user models.User
+	contentType := c.ContentType()
+
+	switch contentType {
+	case "application/json":
+		if err := c.ShouldBindJSON(&user); err != nil {
+			c.JSON(http.StatusBadRequest, models.ErrorResponse(http.StatusBadRequest, "Invalid JSON: "+err.Error()))
+			return
+		}
+	case "application/xml":
+		if err := c.ShouldBindXML(&user); err != nil {
+			c.JSON(http.StatusBadRequest, models.ErrorResponse(http.StatusBadRequest, "Invalid XML: "+err.Error()))
+			return
+		}
+	case "application/x-www-form-urlencoded":
+		if err := c.ShouldBind(&user); err != nil {
+			c.JSON(http.StatusBadRequest, models.ErrorResponse(http.StatusBadRequest, "Invalid form data: "+err.Error()))
+			return
+		}
+	default:
+		c.JSON(http.StatusUnsupportedMediaType, models.ErrorResponse(http.StatusUnsupportedMediaType,
+			"Content-Type must be application/json, application/xml, or application/x-www-form-urlencoded"))
+		return
+	}
+
+	// 3. Validate required fields
+	if user.Username == "" || user.Password == "" {
+		c.JSON(http.StatusBadRequest, models.ErrorResponse(http.StatusBadRequest, "Username and password are required"))
+		return
+	}
+
+	// 4. Check if username already exists
+	var existingUser models.User
+	if result := db.DB.Where("username = ?", user.Username).First(&existingUser); result.Error == nil {
+		c.JSON(http.StatusBadRequest, models.ErrorResponse(http.StatusBadRequest, "Username already exists"))
+		return
+	}
+
+	// 5. Hash password
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, models.ErrorResponse(http.StatusInternalServerError, "Failed to hash password"))
+		return
+	}
+	user.Password = string(hashedPassword)
+
+	// 6. Create user
+	if err := db.DB.Create(&user).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, models.ErrorResponse(http.StatusInternalServerError, "Failed to create user: "+err.Error()))
+		return
+	}
+
+	user.Password = ""
+
+	// 8. Return appropriate content type
+	switch contentType {
+	case "application/xml":
+		c.XML(http.StatusOK, user)
+	default:
+		c.JSON(http.StatusOK, user)
+
+	}
+}
 func CreateUser(c *gin.Context) {
 	var user models.User
 	if err := c.ShouldBindJSON(&user); err != nil {
