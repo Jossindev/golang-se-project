@@ -3,24 +3,37 @@ package main
 import (
 	"awesomeProject/db"
 	"awesomeProject/handlers"
+	"awesomeProject/middleware"
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
-	// Initialize database
+
 	db.InitDB()
 
-	// Set up Gin router
-	r := gin.Default()
+	router := gin.Default()
 
-	// User routes - all routes are now public without auth
-	r.POST("/user", handlers.CreateUser)
-	r.POST("/user/createWithList", handlers.CreateUsersWithList)
-	r.GET("/user/login", handlers.LoginUser)
-	r.GET("/user/logout", handlers.LogoutUser)
-	r.GET("/user/:username", handlers.GetUserByName)
-	r.PUT("/user/:username", handlers.UpdateUser)
-	r.DELETE("/user/:username", handlers.DeleteUser)
+	// Public routes
+	router.POST("/user", handlers.CreateUser)
+	router.POST("/user/createWithList", handlers.CreateUsersWithList)
+	router.GET("/user/login", handlers.LoginUser)
+	router.GET("/user/logout", handlers.LogoutUser)
 
-	r.Run(":8080") // Listen on port 8080
+	// Protected routes
+	authorized := router.Group("")
+	authorized.Use(middleware.AuthMiddleware())
+	{
+		// Basic authorized routes
+		authorized.GET("/user/:username", handlers.GetUserByName)
+
+		// Routes that require ownership verification
+		ownership := authorized.Group("")
+		ownership.Use(middleware.UserOwnershipMiddleware())
+		{
+			ownership.PUT("/user/:username", handlers.UpdateUser)
+			ownership.DELETE("/user/:username", handlers.DeleteUser)
+		}
+	}
+
+	router.Run(":8080")
 }
