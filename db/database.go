@@ -3,6 +3,7 @@ package db
 import (
 	"awesomeProject/utils"
 	"fmt"
+	"os"
 	"time"
 
 	"gorm.io/driver/postgres"
@@ -13,25 +14,23 @@ import (
 var DB *gorm.DB
 
 func InitDB() {
+	dbURL := os.Getenv("DATABASE_URL")
+	if dbURL == "" {
+		// Fallback for local development
+		host := utils.GetEnv("DB_HOST", "localhost")
+		port := utils.GetEnv("DB_PORT", "5432")
+		user := utils.GetEnv("DB_USER", "postgres")
+		password := utils.GetEnv("DB_PASSWORD", "postgres")
+		dbname := utils.GetEnv("DB_NAME", "weatherapi")
 
-	host := utils.GetEnv("DB_HOST", "localhost")
-	port := utils.GetEnv("DB_PORT", "5432")
-	user := utils.GetEnv("DB_USER", "postgres")
-	password := utils.GetEnv("DB_PASSWORD", "postgres")
-	dbname := utils.GetEnv("DB_NAME", "weatherapi")
-
-	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable TimeZone=UTC",
-		host, port, user, password, dbname)
-
-	config := &gorm.Config{
-		Logger: logger.Default.LogMode(logger.Info),
+		dbURL = fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable",
+			user, password, host, port, dbname)
 	}
 
 	var err error
-	DB, err = gorm.Open(postgres.Open(dsn), config)
-	if err != nil {
-		panic("Failed to connect to database: " + err.Error())
-	}
+	DB, err = gorm.Open(postgres.Open(dbURL), &gorm.Config{
+		Logger: logger.Default.LogMode(logger.Info),
+	})
 
 	sqlDB, err := DB.DB()
 	if err != nil {
