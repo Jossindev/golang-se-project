@@ -1,7 +1,6 @@
 package db
 
 import (
-	"awesomeProject/models"
 	"awesomeProject/utils"
 	"fmt"
 	"time"
@@ -19,7 +18,7 @@ func InitDB() {
 	port := utils.GetEnv("DB_PORT", "5432")
 	user := utils.GetEnv("DB_USER", "postgres")
 	password := utils.GetEnv("DB_PASSWORD", "postgres")
-	dbname := utils.GetEnv("DB_NAME", "userapi")
+	dbname := utils.GetEnv("DB_NAME", "weatherapi")
 
 	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable TimeZone=UTC",
 		host, port, user, password, dbname)
@@ -43,10 +42,8 @@ func InitDB() {
 	sqlDB.SetMaxOpenConns(100)
 	sqlDB.SetConnMaxLifetime(time.Hour)
 
-	err = DB.AutoMigrate(&models.Subscription{})
-	if err != nil {
-		panic("Failed to migrate database: " + err.Error())
+	if err := RunMigrations(); err != nil {
+		panic(fmt.Sprintf("Failed to run migrations: %v", err))
 	}
 
-	fmt.Println("Database connection established")
 }

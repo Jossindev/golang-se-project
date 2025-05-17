@@ -3,15 +3,41 @@ version: '3.8'
 services:
   postgres:
     image: postgres:16
-    container_name: postgres-userapi
+    container_name: postgres-weatherapi
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: userapi
+      POSTGRES_DB: weatherapi
     ports:
       - "5432:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
+      - ./postgres-init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: weatherapi
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_NAME=weatherapi
+      - API_KEY=1e405eed27bd478783c100313251705
+      - APP_ENV=dev
+    ports:
+      - "8080:8080"
     restart: unless-stopped
 
 volumes:
