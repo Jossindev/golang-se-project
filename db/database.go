@@ -1,7 +1,6 @@
 package db
 
 import (
-	"awesomeProject/models"
 	"awesomeProject/utils"
 	"fmt"
 	"time"
@@ -43,10 +42,8 @@ func InitDB() {
 	sqlDB.SetMaxOpenConns(100)
 	sqlDB.SetConnMaxLifetime(time.Hour)
 
-	err = DB.AutoMigrate(&models.Subscription{})
-	if err != nil {
-		panic("Failed to migrate database: " + err.Error())
+	if err := RunMigrations(); err != nil {
+		panic(fmt.Sprintf("Failed to run migrations: %v", err))
 	}
 
-	fmt.Println("Database connection established")
 }
