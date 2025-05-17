@@ -34,7 +34,7 @@ services:
       - DB_USER=postgres
       - DB_PASSWORD=postgres
       - DB_NAME=weatherapi
-      - API_KEY=1e405eed27bd478783c100313251705
+      - API_KEY=
       - APP_ENV=dev
     ports:
       - "8080:8080"
