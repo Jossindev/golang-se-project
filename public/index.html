@@ -108,8 +108,9 @@
         const formData = new FormData(e.target);
         const messageDiv = document.getElementById('message');
 
+         // Todo: Add webpack to use env variable and insert it
         try {
-            const response = await fetch('API_URL/api/subscribe', {
+            const response = await fetch('https://golang-se-project-production.up.railway.app/api/subscribe', {
                 method: 'POST',
                 body: formData
             });
