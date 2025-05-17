@@ -25,8 +25,9 @@ func NewEmailService() *EmailService {
 }
 
 func (s *EmailService) SendConfirmationEmail(email, city, token string) error {
+	apiURL := utils.GetEnv("API_URL", "http://localhost:8080")
 	subject := "Confirm your Weather API subscription"
-	confirmationLink := fmt.Sprintf("http://localhost:8080/api/confirm/%s", token) // Todo: Rename to use PROD url as https://weatherapi.app/api after deployment
+	confirmationLink := fmt.Sprintf("%s/api/confirm/%s", apiURL, token)
 
 	body := fmt.Sprintf(`Hello,
 
@@ -45,8 +46,9 @@ The Weather API Team
 }
 
 func (s *EmailService) SendUnsubscribeEmail(email, city, token string) error {
+	apiURL := utils.GetEnv("API_URL", "http://localhost:8080")
 	subject := "Weather API - How to unsubscribe"
-	unsubscribeLink := fmt.Sprintf("http://localhost:8080/api/unsubscribe/%s", token) // Todo: Rename to use PROD url as https://weatherapi.app/api after deployment
+	unsubscribeLink := fmt.Sprintf("%s/api/unsubscribe/%s", apiURL, token)
 
 	body := fmt.Sprintf(`Hello,
 

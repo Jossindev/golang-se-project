@@ -1,0 +1,30 @@
+name: Deploy Weather API
+
+on:
+  push:
+    branches: [ feature-deploy, master ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+
+      - name: Build
+        run: CGO_ENABLED=0 GOOS=linux go build -o weatherapi .
+
+      - name: Setup Railway
+        run: |
+          curl -fsSL https://railway.app/install.sh | sh
+
+      - name: Deploy to Railway
+        run: |
+          railway up --service ${{ github.event.repository.name }} --detach
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}

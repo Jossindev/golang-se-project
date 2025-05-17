@@ -18,6 +18,8 @@ COPY --from=builder /app/weatherapi .
 
 COPY --from=builder /app/db/migrations ./db/migrations
 
+COPY --from=builder /app/public ./public
+
 EXPOSE 8080
 
 CMD ["./weatherapi"]
