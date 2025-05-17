@@ -18,7 +18,7 @@ func InitDB() {
 	port := utils.GetEnv("DB_PORT", "5432")
 	user := utils.GetEnv("DB_USER", "postgres")
 	password := utils.GetEnv("DB_PASSWORD", "postgres")
-	dbname := utils.GetEnv("DB_NAME", "userapi")
+	dbname := utils.GetEnv("DB_NAME", "weatherapi")
 
 	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable TimeZone=UTC",
 		host, port, user, password, dbname)
