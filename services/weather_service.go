@@ -17,7 +17,7 @@ type WeatherService struct {
 
 func NewWeatherService() *WeatherService {
 	return &WeatherService{
-		APIKey:  utils.GetEnv("API_KEY", ""), //Set API_KY with token which will be provided by Weather API
+		APIKey:  utils.GetEnv("API_KEY", ""),
 		BaseURL: "http://api.weatherapi.com/v1/current.json",
 	}
 }
