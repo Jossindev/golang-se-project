@@ -25,6 +25,6 @@ jobs:
 
       - name: Deploy to Railway
         run: |
-          railway up --detach
+          railway up --service ${{ github.event.repository.name }} --detach
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
