@@ -3,6 +3,7 @@ package utils
 import (
 	"crypto/rand"
 	"encoding/base64"
+	"strconv"
 	"time"
 )
 
@@ -19,7 +20,7 @@ func GenerateToken() (string, error) {
 	token := base64.URLEncoding.EncodeToString(b)
 
 	timestamp := time.Now().UnixNano()
-	tokenWithTimestamp := base64.URLEncoding.EncodeToString([]byte(token + string(timestamp)))
+	tokenWithTimestamp := base64.URLEncoding.EncodeToString([]byte(token + strconv.FormatInt(timestamp, 10)))
 
 	return tokenWithTimestamp, nil
 }
