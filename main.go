@@ -7,20 +7,21 @@ import (
 )
 
 func main() {
-	// Initialize database
+
 	db.InitDB()
 
-	// Set up Gin router
-	r := gin.Default()
+	router := gin.Default()
 
-	// User routes - all routes are now public without auth
-	r.POST("/user", handlers.CreateUser)
-	r.POST("/user/createWithList", handlers.CreateUsersWithList)
-	r.GET("/user/login", handlers.LoginUser)
-	r.GET("/user/logout", handlers.LogoutUser)
-	r.GET("/user/:username", handlers.GetUserByName)
-	r.PUT("/user/:username", handlers.UpdateUser)
-	r.DELETE("/user/:username", handlers.DeleteUser)
+	api := router.Group("/api")
+	{
+		// Weather routes
+		api.GET("/weather", handlers.GetWeather)
 
-	r.Run(":8080") // Listen on port 8080
+		// Subscription routes
+		api.POST("/subscribe", handlers.Subscribe)
+		api.GET("/confirm/:token", handlers.ConfirmSubscription)
+		api.GET("/unsubscribe/:token", handlers.Unsubscribe)
+	}
+
+	router.Run(":8080")
 }
