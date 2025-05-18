@@ -2,7 +2,7 @@ name: Deploy Weather API
 
 on:
   push:
-    branches: [ master, t-branch ]
+    branches: [ master, enable-smtp ]
 
 jobs:
   build-and-deploy:
