@@ -3,24 +3,21 @@ package services
 import (
 	"awesomeProject/utils"
 	"fmt"
-	"net/smtp"
+	"github.com/sendgrid/sendgrid-go"
+	"github.com/sendgrid/sendgrid-go/helpers/mail"
 )
 
 type EmailService struct {
-	SmtpHost string
-	SmtpPort string
-	Username string
-	Password string
-	FromName string
+	ApiKey    string
+	FromName  string
+	FromEmail string
 }
 
 func NewEmailService() *EmailService {
 	return &EmailService{
-		SmtpHost: utils.GetEnv("SMTP_HOST", "smtp.example.com"),
-		SmtpPort: utils.GetEnv("SMTP_PORT", "587"),
-		Username: utils.GetEnv("SMTP_USERNAME", ""),
-		Password: utils.GetEnv("SMTP_PASSWORD", ""),
-		FromName: utils.GetEnv("FROM_NAME", "Weather API"),
+		ApiKey:    utils.GetEnv("SENDGRID_API_KEY", ""),
+		FromName:  utils.GetEnv("FROM_NAME", "Weather API"),
+		FromEmail: utils.GetEnv("FROM_EMAIL", ""),
 	}
 }
 
@@ -65,26 +62,27 @@ The Weather API Team
 }
 
 func (s *EmailService) sendEmail(to, subject, body string) error {
-	if utils.GetEnv("APP_ENV", "dev") != "production" {
-		fmt.Printf("Email to: %s\nSubject: %s\nBody: %s\n", to, subject, body)
-		return nil
+	from := mail.NewEmail(s.FromName, s.FromEmail)
+	toEmail := mail.NewEmail("", to)
+
+	plainTextContent := body
+	htmlContent := body
+
+	message := mail.NewSingleEmail(from, subject, toEmail, plainTextContent, htmlContent)
+	client := sendgrid.NewSendClient(s.ApiKey)
+
+	response, err := client.Send(message)
+
+	if err != nil {
+		return fmt.Errorf("failed to send email: %w", err)
 	}
 
-	auth := smtp.PlainAuth("", s.Username, s.Password, s.SmtpHost)
-
-	msg := fmt.Sprintf("To: %s\r\n"+
-		"Subject: %s\r\n"+
-		"From: %s <%s>\r\n"+
-		"\r\n"+
-		"%s\r\n", to, subject, s.FromName, s.Username, body)
-
-	err := smtp.SendMail(
-		s.SmtpHost+":"+s.SmtpPort,
-		auth,
-		s.Username,
-		[]string{to},
-		[]byte(msg),
-	)
+	if response.StatusCode >= 200 && response.StatusCode < 300 {
+		fmt.Printf("Email sent successfully! Status code: %d\n", response.StatusCode)
+	} else {
+		fmt.Printf("Email API request failed. Status: %d, Body: %s\n", response.StatusCode, response.Body)
+		return fmt.Errorf("email sending failed with status code %d", response.StatusCode)
+	}
 
 	return err
 }
